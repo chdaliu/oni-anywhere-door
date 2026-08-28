@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName>ONIAnywhereDoor</AssemblyName>
+    <RootNamespace>ONIAnywhereDoor</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <AssemblyTitle>ONI-AnywhereDoor</AssemblyTitle>
+    <Product>任意门</Product>
+    <Version>1.0.0</Version>
+    <DebugType>none</DebugType>
+    <NoWarn>CS0436;CS0618</NoWarn>
+
+    <!-- Steam / local install of Oxygen Not Included. Override with /p:ManagedDir=... -->
+    <ManagedDir Condition="'$(ManagedDir)' == ''">$(HOME)/Library/Application Support/Steam/steamapps/common/OxygenNotIncluded/OxygenNotIncluded.app/Contents/Resources/Data/Managed</ManagedDir>
+    <LocalModDir Condition="'$(LocalModDir)' == ''">$(HOME)/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Local/ONI-AnywhereDoor</LocalModDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="src/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AnimAsset Include="anim/assets/oni_anywhere_door/*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(ManagedDir)/Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>$(ManagedDir)/Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(ManagedDir)/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ManagedDir)/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ManagedDir)/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="DeployLocalMod" AfterTargets="Build">
+    <MakeDir Directories="$(LocalModDir)" />
+    <MakeDir Directories="$(LocalModDir)/anim/assets/oni_anywhere_door" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(LocalModDir)" />
+    <Copy SourceFiles="mod.yaml;mod_info.yaml" DestinationFolder="$(LocalModDir)" />
+    <Copy SourceFiles="@(AnimAsset)" DestinationFolder="$(LocalModDir)/anim/assets/oni_anywhere_door" />
+    <Copy SourceFiles="README.md" DestinationFolder="$(LocalModDir)" Condition="Exists('README.md')" />
+  </Target>
+
+</Project>
