@@ -1,53 +1,86 @@
 namespace ONIAnywhereDoor
 {
-    /// <summary>侧边栏按钮的公共基类。</summary>
-    public abstract class AnywhereDoorButton : KMonoBehaviour, ISidescreenButtonControl
+    /// <summary>
+    /// Shared pass-through toggle logic. The buttons live in the action button
+    /// area below the building details panel, next to vanilla actions such as
+    /// Deconstruct and Copy Settings.
+    /// </summary>
+    public abstract class AnywhereDoorMenuButton : KMonoBehaviour
     {
         protected AnywhereDoor door;
+
+        private static readonly EventSystem.IntraObjectHandler<AnywhereDoorMenuButton> OnRefreshUserMenuDelegate =
+            new EventSystem.IntraObjectHandler<AnywhereDoorMenuButton>(
+                delegate(AnywhereDoorMenuButton component, object data)
+                {
+                    component.OnRefreshUserMenu(data);
+                });
+
+        protected abstract string IconName { get; }
+
+        protected abstract string ButtonText { get; }
+
+        protected abstract string ButtonTooltip { get; }
+
+        protected abstract float SortOrder { get; }
+
+        protected abstract void OnPressed();
+
+        protected override void OnPrefabInit()
+        {
+            base.OnPrefabInit();
+            Subscribe(493375141, OnRefreshUserMenuDelegate);
+        }
 
         protected override void OnSpawn()
         {
             base.OnSpawn();
             door = GetComponent<AnywhereDoor>();
+            RefreshUserMenu();
         }
 
-        public virtual string SidescreenTitle
+        private void OnRefreshUserMenu(object data)
         {
-            get { return STRINGS.UI.ONIANYWHEREDOOR.TITLE; }
+            if (door == null)
+            {
+                door = GetComponent<AnywhereDoor>();
+            }
+            if (door == null || Game.Instance == null || Game.Instance.userMenu == null)
+            {
+                return;
+            }
+
+            KIconButtonMenu.ButtonInfo button = new KIconButtonMenu.ButtonInfo(
+                IconName,
+                ButtonText,
+                OnPressed,
+                Action.NumActions,
+                null,
+                null,
+                null,
+                ButtonTooltip,
+                true);
+            Game.Instance.userMenu.AddButton(gameObject, button, SortOrder);
         }
 
-        public abstract string SidescreenButtonText { get; }
-
-        public abstract string SidescreenButtonTooltip { get; }
-
-        public virtual void SetButtonTextOverride(ButtonMenuTextOverride textOverride)
+        private void RefreshUserMenu()
         {
+            if (Game.Instance != null && Game.Instance.userMenu != null)
+            {
+                Game.Instance.userMenu.Refresh(gameObject);
+            }
         }
-
-        public virtual bool SidescreenEnabled()
-        {
-            return true;
-        }
-
-        public virtual bool SidescreenButtonInteractable()
-        {
-            return door != null;
-        }
-
-        public abstract void OnSidescreenButtonPressed();
-
-        public virtual int HorizontalGroupID()
-        {
-            return -1;
-        }
-
-        public abstract int ButtonSideScreenSortOrder();
     }
 
-    /// <summary>复制人通行开关。</summary>
-    public sealed class AnywhereDoorDupeButton : AnywhereDoorButton
+    /// <summary>Duplicant passage toggle (allowed by default).</summary>
+    public sealed class AnywhereDoorDupeButton : AnywhereDoorMenuButton
     {
-        public override string SidescreenButtonText
+        protected override string IconName
+        {
+            get { return "action_control"; }
+        }
+
+        protected override string ButtonText
         {
             get
             {
@@ -59,29 +92,42 @@ namespace ONIAnywhereDoor
             }
         }
 
-        public override string SidescreenButtonTooltip
+        protected override string ButtonTooltip
         {
-            get { return STRINGS.UI.ONIANYWHEREDOOR.DUPE_TOOLTIP; }
+            get
+            {
+                string state = (door != null && door.AllowDuplicants)
+                    ? STRINGS.UI.ONIANYWHEREDOOR.DUPE_ALLOWED
+                    : STRINGS.UI.ONIANYWHEREDOOR.DUPE_FORBIDDEN;
+                string format = STRINGS.UI.ONIANYWHEREDOOR.CURRENT_STATE;
+                return string.Format(format + "\n{1}", state,
+                                     STRINGS.UI.ONIANYWHEREDOOR.DUPE_TOOLTIP);
+            }
         }
 
-        public override void OnSidescreenButtonPressed()
+        protected override float SortOrder
+        {
+            get { return 2f; }
+        }
+
+        protected override void OnPressed()
         {
             if (door != null)
             {
                 door.SetAllowDuplicants(!door.AllowDuplicants);
             }
         }
-
-        public override int ButtonSideScreenSortOrder()
-        {
-            return 10;
-        }
     }
 
-    /// <summary>小动物通行开关。</summary>
-    public sealed class AnywhereDoorCritterButton : AnywhereDoorButton
+    /// <summary>Critter passage toggle (blocked by default).</summary>
+    public sealed class AnywhereDoorCritterButton : AnywhereDoorMenuButton
     {
-        public override string SidescreenButtonText
+        protected override string IconName
+        {
+            get { return "action_capture"; }
+        }
+
+        protected override string ButtonText
         {
             get
             {
@@ -93,22 +139,30 @@ namespace ONIAnywhereDoor
             }
         }
 
-        public override string SidescreenButtonTooltip
+        protected override string ButtonTooltip
         {
-            get { return STRINGS.UI.ONIANYWHEREDOOR.CRITTER_TOOLTIP; }
+            get
+            {
+                string state = (door != null && door.AllowCritters)
+                    ? STRINGS.UI.ONIANYWHEREDOOR.CRITTER_ALLOWED
+                    : STRINGS.UI.ONIANYWHEREDOOR.CRITTER_FORBIDDEN;
+                string format = STRINGS.UI.ONIANYWHEREDOOR.CURRENT_STATE;
+                return string.Format(format + "\n{1}", state,
+                                     STRINGS.UI.ONIANYWHEREDOOR.CRITTER_TOOLTIP);
+            }
         }
 
-        public override void OnSidescreenButtonPressed()
+        protected override float SortOrder
+        {
+            get { return 3f; }
+        }
+
+        protected override void OnPressed()
         {
             if (door != null)
             {
                 door.SetAllowCritters(!door.AllowCritters);
             }
-        }
-
-        public override int ButtonSideScreenSortOrder()
-        {
-            return 20;
         }
     }
 }

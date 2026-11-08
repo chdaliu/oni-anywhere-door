@@ -19,6 +19,8 @@ ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "anim" / "assets" / "oni_anywhere_door"
 NAME = "oni_anywhere_door"
 UI_HASH = 7675188  # Hash.SDBMLower("ui")
+DOOR_HASH = 1673617230  # Hash.SDBMLower("door")
+UI_ART_SCALE = 0.72
 BOUNDS = (0.0, -100.0, 200.0, 400.0)
 
 ANIMS = (
@@ -40,9 +42,9 @@ OUT_W, OUT_H = 256, 512
 W, H = OUT_W * SS, OUT_H * SS
 
 # Outer silhouette (native 4x pixels).
-X0, X1 = 54, 970
-Y0, Y1 = 36, 2012
-R_OUT = 200
+X0, X1 = 20, 1004
+Y0, Y1 = 12, 2034
+R_OUT = 32
 
 # Portal arch.
 PX0, PX1 = 244, 780
@@ -484,13 +486,13 @@ def draw_portal() -> Image.Image:
     brass = brass_rgb(rng, bright=False)
     brass_hi = brass_rgb(rng, bright=True)
 
-    outer = rrect((X0, Y0, X1, Y1), R_OUT)
+    outer = rect((X0, Y0, X1, Y1))
     portal = arch(0.0)
 
     canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
 
     # --- ambient halo behind the door ---------------------------------
-    halo = blur_mask(rrect((X0 - 14, Y0 - 12, X1 + 14, Y1 + 6), R_OUT), 78)
+    halo = blur_mask(rrect((X0 - 10, Y0 - 8, X1 + 10, Y1 + 6), R_OUT), 70)
     canvas = comp(canvas, np.broadcast_to(
         np.array([0.10, 0.55, 0.62], np.float32), (H, W, 3)), halo * 0.20)
 
@@ -502,21 +504,19 @@ def draw_portal() -> Image.Image:
 
     # brass inlay following the silhouette
     in1 = rrect((X0 + 26, Y0 + 26, X1 - 26, Y1 - 26), R_OUT - 18)
-    in2 = rrect((X0 + 46, Y0 + 46, X1 - 46, Y1 - 46), R_OUT - 34)
+    in2 = rrect((X0 + 46, Y0 + 46, X1 - 46, Y1 - 46), max(2.0, R_OUT - 34))
     rgb, a = paint_region(band(in1, in2), brass,
                           bevel=9, ambient=0.42, diffuse=1.0,
                           spec=1.0, spec_power=32, vertical=0.05)
     canvas = comp(canvas, rgb, a)
 
     # recessed shadow just inside the inlay
-    lip = band(in2, rrect((X0 + 62, Y0 + 62, X1 - 62, Y1 - 62), R_OUT - 46))
+    lip = band(in2, rrect((X0 + 62, Y0 + 62, X1 - 62, Y1 - 62),
+                          max(2.0, R_OUT - 46)))
     canvas = comp(canvas, np.broadcast_to(INK, (H, W, 3)), lip * 0.55)
 
     # --- top lintel ----------------------------------------------------
-    lintel = union(
-        rrect((X0, Y0, X1, 334), R_OUT),
-        rect((X0, 190, X1, 334)),
-    )
+    lintel = rect((X0, Y0, X1, 334))
     rgb, a = paint_region(lintel, steel, bevel=20, ambient=0.38,
                           diffuse=1.0, spec=0.75, spec_power=22,
                           vertical=0.14)
@@ -537,8 +537,8 @@ def draw_portal() -> Image.Image:
 
     # --- bottom plinth -------------------------------------------------
     plinth = union(
-        rrect((X0 - 20, 1760, X1 + 20, 2014), 56),
-        rect((X0 - 20, 1760, X1 + 20, 1880)),
+        rrect((X0 - 8, 1760, X1 + 8, 2036), 46),
+        rect((X0 - 8, 1760, X1 + 8, 1880)),
     )
     rgb, a = paint_region(plinth, stone, bevel=22, ambient=0.38,
                           diffuse=0.98, spec=0.30, spec_power=20,
@@ -550,12 +550,12 @@ def draw_portal() -> Image.Image:
         [X0 - 60, 1840, X0 + 470, 2090]))
     canvas = glow(canvas, stone_sheen * plinth, (0.55, 0.66, 0.80), 0.075, 55)
 
-    molding = rrect((X0 - 16, 1764, X1 + 16, 1804), 17)
+    molding = rrect((X0 - 4, 1764, X1 + 4, 1804), 17)
     rgb, a = paint_region(molding, brass, bevel=8, ambient=0.42,
                           diffuse=1.0, spec=0.95, spec_power=30, vertical=0.0)
     canvas = comp(canvas, rgb, a)
 
-    foot = rrect((X0 - 4, 1974, X1 + 4, 2002), 12)
+    foot = rrect((X0, 1998, X1, 2026), 12)
     rgb, a = paint_region(foot, brass, bevel=6, ambient=0.40,
                           diffuse=1.0, spec=0.8, spec_power=26, vertical=0.0)
     canvas = comp(canvas, rgb, a)
@@ -672,9 +672,8 @@ def draw_portal() -> Image.Image:
 
     # --- outer edge / rim light ---------------------------------------
     canvas = comp(canvas, np.broadcast_to(INK, (H, W, 3)),
-                  band(outer, rrect((X0 + 12, Y0 + 12, X1 - 12, Y1 - 12),
-                                    R_OUT - 8)) * 0.75)
-    rim_light = band(outer, rrect((X0 + 4, Y0 + 4, X1 - 4, Y1 - 4), R_OUT - 3))
+                  band(outer, rect((X0 + 12, Y0 + 12, X1 - 12, Y1 - 12))) * 0.75)
+    rim_light = band(outer, rect((X0 + 4, Y0 + 4, X1 - 4, Y1 - 4)))
     light_grad = np.clip(0.55 - (np.linspace(0, 1, W, dtype=np.float32)[None, :]
                                  * 0.35
                                  + np.linspace(0, 1, H, dtype=np.float32)[:, None]
@@ -700,7 +699,7 @@ def draw_portal() -> Image.Image:
     # shows a clipped rectangular halo in game
     border = np.minimum(np.minimum(xx, (W - 1) - xx),
                         np.minimum(yy, (H - 1) - yy))
-    arr[..., 3] *= np.clip(border / 28.0, 0.0, 1.0)
+    arr[..., 3] *= np.clip(border / 12.0, 0.0, 1.0)
 
     out = Image.fromarray((np.clip(arr, 0, 1) * 255).astype(np.uint8))
     out = out.resize((OUT_W, OUT_H), Image.LANCZOS)
@@ -895,27 +894,50 @@ def kstring(s: str) -> bytes:
     return struct.pack("<i", len(b)) + b
 
 
+def _ui_art(image: Image.Image) -> Image.Image:
+    """Return a padded copy used only for UI/build-menu icons."""
+    w, h = image.size
+    scaled = image.resize((max(1, int(w * UI_ART_SCALE)),
+                           max(1, int(h * UI_ART_SCALE))), Image.LANCZOS)
+    out = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    out.paste(scaled, ((w - scaled.width) // 2, (h - scaled.height) // 2), scaled)
+    return out
+
+
 def write_kanim(image: Image.Image) -> None:
     ASSETS.mkdir(parents=True, exist_ok=True)
-    image.save(ASSETS / f"{NAME}_0.png")
+
+    # One texture, two regions: the top half is the full-size in-world art;
+    # the bottom half is a padded copy used for the build-menu icon and portrait.
+    ui_art = _ui_art(image)
+    atlas = Image.new("RGBA", (image.width, image.height * 2), (0, 0, 0, 0))
+    atlas.paste(image, (0, 0))
+    atlas.paste(ui_art, (0, image.height))
+    atlas.save(ASSETS / f"{NAME}_0.png")
 
     build = bytearray()
     build += b"BILD"
     build += struct.pack("<i", 10)
-    build += struct.pack("<i", 1)  # symbols
+    build += struct.pack("<i", 2)  # symbols
     build += struct.pack("<i", 0)
-    build += kstring("ui")
-    build += struct.pack("<i", UI_HASH)
-    build += struct.pack("<i", UI_HASH)
-    build += struct.pack("<i", 0)  # channels
-    build += struct.pack("<i", 0)  # flags
-    build += struct.pack("<i", 1)  # frames
-    build += struct.pack("<i", 0)  # sequence
-    build += struct.pack("<i", 1)  # duration
-    build += struct.pack("<i", 0)  # texture image
-    build += struct.pack("<4f", *BOUNDS)
-    build += struct.pack("<4f", 0.0, 0.0, 1.0, 1.0)
-    build += struct.pack("<i", 1)
+    build += kstring("oni_anywhere_door")
+    for symbol_hash, uv_y0, uv_y1 in (
+        (DOOR_HASH, 0.0, 0.5),  # full-size world art (top half)
+        (UI_HASH, 0.5, 1.0),    # padded UI art (bottom half)
+    ):
+        build += struct.pack("<i", symbol_hash)
+        build += struct.pack("<i", symbol_hash)
+        build += struct.pack("<i", 0)  # channels
+        build += struct.pack("<i", 0)  # flags
+        build += struct.pack("<i", 1)  # frames
+        build += struct.pack("<i", 0)  # sequence
+        build += struct.pack("<i", 1)  # duration
+        build += struct.pack("<i", 0)  # texture image
+        build += struct.pack("<4f", *BOUNDS)
+        build += struct.pack("<4f", 0.0, uv_y0, 1.0, uv_y1)
+    build += struct.pack("<i", 2)  # hash table entries
+    build += struct.pack("<i", DOOR_HASH)
+    build += kstring("door")
     build += struct.pack("<i", UI_HASH)
     build += kstring("ui")
     (ASSETS / f"{NAME}_build.bytes").write_bytes(build)
@@ -927,21 +949,25 @@ def write_kanim(image: Image.Image) -> None:
     anim += struct.pack("<i", 0)
     anim += struct.pack("<i", len(ANIMS))
     for anim_name in ANIMS:
+        # The build menu reads the "ui" symbol; in-world anims use the full art.
+        symbol_hash = UI_HASH if anim_name == "ui" else DOOR_HASH
         anim += kstring(anim_name)
-        anim += struct.pack("<i", UI_HASH)
+        anim += struct.pack("<i", symbol_hash)
         anim += struct.pack("<f", 1.0)
         anim += struct.pack("<i", 1)
         anim += struct.pack("<4f", *BOUNDS)
         anim += struct.pack("<i", 1)
-        anim += struct.pack("<i", UI_HASH)
+        anim += struct.pack("<i", symbol_hash)
         anim += struct.pack("<i", 0)
-        anim += struct.pack("<i", UI_HASH)
+        anim += struct.pack("<i", symbol_hash)
         anim += struct.pack("<i", 0)
         anim += struct.pack("<4f", 1.0, 1.0, 1.0, 1.0)
         anim += struct.pack("<6f", 1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
         anim += struct.pack("<f", 0.0)
     anim += struct.pack("<i", 0)
-    anim += struct.pack("<i", 1)
+    anim += struct.pack("<i", 2)
+    anim += struct.pack("<i", DOOR_HASH)
+    anim += kstring("door")
     anim += struct.pack("<i", UI_HASH)
     anim += kstring("ui")
     (ASSETS / f"{NAME}_anim.bytes").write_bytes(anim)

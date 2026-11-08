@@ -1,3 +1,3 @@
-title: "任意门"
-description: "添加 1x2 的任意门。所有建成的任意门在同一世界中自动组成最近邻传送网络，复制人自动寻路时会自动选择最近的入口使用网络，传送瞬间完成，没有动画、等待或排队；不需要选择目的地。任意门阻挡气体、液体和固体物质，只有复制人与小动物可以通过；可分别允许或禁止复制人与小动物通过。使用矿石建造，不可损毁，不交换热量。"
+title: "任意门 / Anywhere Door"
+description: "【中文】添加 1x2 的任意门。所有建成的任意门在同一世界中自动组成最近邻传送网络，复制人自动寻路时会自动选择最近的入口使用网络，传送瞬间完成，没有动画、等待或排队；不需要选择目的地。任意门阻挡气体、液体和固体物质，只有复制人与小动物可以通过；可在建筑详情面板下方的功能区分别允许或禁止复制人与小动物通过（小动物默认禁止）。使用矿石建造，不可损毁，不交换热量。\n\n【English】Adds a 1x2 Anywhere Door. Completed doors in the same world automatically form a nearest-neighbour teleport network that duplicant pathfinding uses automatically; travel is instant with no animation, waiting, or queue, and no destination needs to be chosen. Doors block gas, liquids, and solids; only duplicants and critters may pass. Duplicant and critter passage can be allowed or blocked independently from the action area below the building details panel (critters are blocked by default). Built from mineral, indestructible, and no heat exchange."
 staticID: "ONIAnywhereDoor"

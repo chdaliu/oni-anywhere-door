@@ -12,8 +12,9 @@ namespace ONIAnywhereDoor
     }
 
     /// <summary>
-    /// 原版会扫描所有已加载程序集中的 IBuildingConfig，建筑注册本身无需手动调用。
-    /// 这里负责注册字符串和建造菜单入口。
+    /// The base game scans all loaded assemblies for IBuildingConfig, so the
+    /// building itself needs no manual registration. This patch registers the
+    /// localization keys and the build-menu entry.
     /// </summary>
     [HarmonyPatch(typeof(GeneratedBuildings), nameof(GeneratedBuildings.LoadGeneratedBuildings))]
     public static class GeneratedBuildingsPatch
@@ -28,6 +29,7 @@ namespace ONIAnywhereDoor
             }
 
             initialized = true;
+            STRINGS.Initialize();
             LocString.CreateLocStringKeys(typeof(STRINGS), null);
 
             ModUtil.AddBuildingToPlanScreen("Base", AnywhereDoorConfig.ID, "doors");

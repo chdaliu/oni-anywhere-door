@@ -3,8 +3,9 @@ using HarmonyLib;
 namespace ONIAnywhereDoor
 {
     /// <summary>
-    /// 让任意门相关的 Teleport 过渡在下一帧立即完成，跳过传送动画的等待。
-    /// 只对“起点/终点在任意门格子上”的 Teleport 过渡生效，不影响原版其他传送器。
+    /// Finish Teleport transitions involving an Anywhere Door on the next frame,
+    /// skipping the travel-animation wait. Only transitions whose start or end
+    /// cell belongs to an Anywhere Door are affected; vanilla teleporters are untouched.
     /// </summary>
     [HarmonyPatch(typeof(TransitionDriver), "BeginTransition",
         new[] { typeof(Navigator), typeof(Navigator.ActiveTransition) })]
@@ -29,7 +30,8 @@ namespace ONIAnywhereDoor
                 return;
             }
 
-            // TransitionDriver.UpdateTransition 在下一 tick 会直接到达目标格并推进路径。
+            // TransitionDriver.UpdateTransition will reach the target cell on
+            // the next tick and advance the path.
             IsComplete(__instance) = true;
         }
     }

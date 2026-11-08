@@ -10,14 +10,15 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AssemblyTitle>ONI-AnywhereDoor</AssemblyTitle>
-    <Product>任意门</Product>
-    <Version>1.0.0</Version>
+    <Product>Anywhere Door / 任意门</Product>
+    <Version>1.0.1</Version>
     <DebugType>none</DebugType>
     <NoWarn>CS0436;CS0618</NoWarn>
 
     <!-- Steam / local install of Oxygen Not Included. Override with /p:ManagedDir=... -->
     <ManagedDir Condition="'$(ManagedDir)' == ''">$(HOME)/Library/Application Support/Steam/steamapps/common/OxygenNotIncluded/OxygenNotIncluded.app/Contents/Resources/Data/Managed</ManagedDir>
     <LocalModDir Condition="'$(LocalModDir)' == ''">$(HOME)/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Local/ONI-AnywhereDoor</LocalModDir>
+    <SteamModDir Condition="'$(SteamModDir)' == ''">$(HOME)/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Steam/ONI-AnywhereDoor</SteamModDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -62,6 +63,15 @@
     <Copy SourceFiles="mod.yaml;mod_info.yaml" DestinationFolder="$(LocalModDir)" />
     <Copy SourceFiles="@(AnimAsset)" DestinationFolder="$(LocalModDir)/anim/assets/oni_anywhere_door" />
     <Copy SourceFiles="README.md" DestinationFolder="$(LocalModDir)" Condition="Exists('README.md')" />
+  </Target>
+
+  <Target Name="DeploySteamMod" AfterTargets="Build">
+    <MakeDir Directories="$(SteamModDir)" />
+    <MakeDir Directories="$(SteamModDir)/anim/assets/oni_anywhere_door" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(SteamModDir)" />
+    <Copy SourceFiles="mod.yaml;mod_info.yaml" DestinationFolder="$(SteamModDir)" />
+    <Copy SourceFiles="@(AnimAsset)" DestinationFolder="$(SteamModDir)/anim/assets/oni_anywhere_door" />
+    <Copy SourceFiles="README.md" DestinationFolder="$(SteamModDir)" Condition="Exists('README.md')" />
   </Target>
 
 </Project>

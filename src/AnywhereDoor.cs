@@ -5,16 +5,19 @@ using UnityEngine;
 namespace ONIAnywhereDoor
 {
     /// <summary>
-    /// 任意门的核心逻辑。
+    /// Core logic for the Anywhere Door.
     ///
-    /// 同一世界中的门按“最近邻”顺序组成一个环状传送网络：
-    /// A → B → C → ... → A。每个门只需要一条到下一扇门的 NavTeleporter 链接，
-    /// 复制人自动寻路时会把传送网络当作道路使用；路径查找会选择最近的入口和路线。
+    /// Doors in the same world form a ring-shaped network in nearest-neighbour
+    /// order: A -> B -> C -> ... -> A. Each door needs only one NavTeleporter
+    /// link to the next door. Duplicant pathfinding treats the network as a
+    /// walkable route and picks the closest entrance.
     ///
-    /// InstantTeleportPatch 会把 Teleport 过渡立即完成，因此传送没有动画、等待或排队。
+    /// InstantTeleportPatch finishes Teleport transitions immediately, so there
+    /// is no travel animation, waiting, or queue.
     ///
-    /// SimCellOccupier 提供气体/液体/固体不可渗透属性；本组件把 Nav 层重新设为非固体，
-    /// 因此只有生物可以穿过，物质不能通过，也不参与热交换。
+    /// SimCellOccupier supplies gas/liquid/solid impermeability. This component
+    /// restores the Nav layer to non-solid, so only creatures can pass; matter
+    /// cannot, and the cells do not exchange heat.
     /// </summary>
     [SerializationConfig(MemberSerialization.OptIn)]
     public sealed class AnywhereDoor : KMonoBehaviour, ISim200ms
@@ -25,7 +28,7 @@ namespace ONIAnywhereDoor
         public bool allowDuplicants = true;
 
         [Serialize]
-        public bool allowCritters = true;
+        public bool allowCritters = false;
 
         private NavTeleporter navTeleporter;
         private Building building;
@@ -57,11 +60,13 @@ namespace ONIAnywhereDoor
             }
             registered = true;
 
-            // BuildingComplete.OnSpawn 可能在本组件之后才设置建筑位置，
-            // 因此延迟一点再读取 PlacementCells，避免缓存无效坐标。
+            // BuildingComplete.OnSpawn may assign the building position after
+            // this component spawns, so delay reading PlacementCells to avoid
+            // caching invalid coordinates.
             passabilityRefreshTimer = 0.5f;
 
-            // 新门加入后让现有门尽快重建最近邻网络；存档载入时也会在 0.5 秒内完成。
+            // Rebuild the nearest-neighbour network soon after a door is added;
+            // this also completes within 0.5 s when a save is loaded.
             linkRefreshTimer = 0.5f;
             for (int i = 0; i < AllDoors.Count; i++)
             {
@@ -178,9 +183,10 @@ namespace ONIAnywhereDoor
         }
 
         /// <summary>
-        /// 每个世界单独组网。门先按坐标排序，再按最近邻顺序串成一个环：
-        /// 每扇门链接到离它最近的下一扇门，最后一扇回到第一扇。
-        /// 这样复制人寻路时可以从最近的入口进入网络，并沿较短的链路前进。
+        /// Build one network per world. Doors are sorted by position and then
+        /// chained into a ring in nearest-neighbour order: each door links to
+        /// the closest next door, and the last one links back to the first.
+        /// Duplicants can enter at the closest door and follow short hops.
         /// </summary>
         public static void RefreshAllLinks()
         {
@@ -304,16 +310,17 @@ namespace ONIAnywhereDoor
                     continue;
                 }
 
-                // SimCellOccupier 会把格子设为 C# 固体；这里改回非固体，
-                // 只保留 Sim 层的气体/液体/固体不可渗透属性。
+                // SimCellOccupier marks the cell solid in C#; restore it to
+                // non-solid while keeping its Sim-layer impermeability.
                 Grid.SetSolid(cell, false, CellEventLogger.Instance.SimCellOccupierForceSolid);
                 Game.Instance.SetDupePassableSolid(cell, passable: true, solid: false);
 
-                // 物理通行只由这两个标志控制：复制人与小动物可以分别放行。
+                // Physical passage is controlled by these two flags, so
+                // duplicants and critters can be allowed independently.
                 Grid.DupeImpassable[cell] = !allowDuplicants;
                 Grid.CritterImpassable[cell] = !allowCritters;
 
-                // 不通过门所在格交换热量（0f = 完全隔热）。
+                // Do not exchange heat through the door cells (0f = insulated).
                 SimMessages.SetInsulation(cell, 0f);
 
                 if (Pathfinding.Instance != null)
@@ -348,8 +355,9 @@ namespace ONIAnywhereDoor
                 Grid.CritterImpassable[cell] = false;
                 SimMessages.SetInsulation(cell, 1f);
 
-                // SimCellOccupier 会把 RenderedByWorld 设为 false，拆除时恢复。
-                // Substance.renderedByWorld 对 Mod 程序集不可见，等价条件为 Element.IsSolid。
+                // SimCellOccupier clears RenderedByWorld; restore it on removal.
+                // Substance.renderedByWorld is not visible to mod assemblies,
+                // so the equivalent condition is Element.IsSolid.
                 if (element != null)
                 {
                     Grid.RenderedByWorld[cell] = element.IsSolid;
