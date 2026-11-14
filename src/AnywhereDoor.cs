@@ -17,11 +17,26 @@ namespace ONIAnywhereDoor
     ///
     /// SimCellOccupier supplies gas/liquid/solid impermeability. This component
     /// restores the Nav layer to non-solid, so only creatures can pass; matter
-    /// cannot, and the cells do not exchange heat.
+    /// cannot, and the cells do not exchange heat. The sim flags and insulation
+    /// are also re-asserted periodically: reloading or replacing the cell element
+    /// can reset the sim-side insulation byte, which would silently reopen the
+    /// cells to heat conduction.
     /// </summary>
     [SerializationConfig(MemberSerialization.OptIn)]
     public sealed class AnywhereDoor : KMonoBehaviour, ISim200ms
     {
+        // GasImpermeable | LiquidImpermeable | SolidImpermeable: no gas, liquid,
+        // or falling solid may enter the door cells.
+        private const byte SealedCellProperties =
+            (byte)((int)Sim.Cell.Properties.GasImpermeable |
+                   (int)Sim.Cell.Properties.LiquidImpermeable |
+                   (int)Sim.Cell.Properties.SolidImpermeable);
+
+        // The sim stores insulation as a byte where 0 is perfect insulation.
+        // SimMessages.SetInsulation(1f) restores the default conductivity.
+        private const float SealedInsulation = 0f;
+        private const float DefaultInsulation = 1f;
+
         public static readonly List<AnywhereDoor> AllDoors = new List<AnywhereDoor>();
 
         [Serialize]
@@ -35,6 +50,7 @@ namespace ONIAnywhereDoor
         private int[] placementCells;
         private float linkRefreshTimer;
         private float passabilityRefreshTimer;
+        private float sealRefreshTimer;
         private bool registered;
 
         public bool AllowDuplicants
@@ -64,6 +80,7 @@ namespace ONIAnywhereDoor
             // this component spawns, so delay reading PlacementCells to avoid
             // caching invalid coordinates.
             passabilityRefreshTimer = 0.5f;
+            sealRefreshTimer = 0.5f;
 
             // Rebuild the nearest-neighbour network soon after a door is added;
             // this also completes within 0.5 s when a save is loaded.
@@ -123,6 +140,15 @@ namespace ONIAnywhereDoor
                 {
                     RefreshAllLinks();
                 }
+            }
+
+            // Re-assert the seal at a low frequency. This catches cell element
+            // changes that reset the sim insulation byte, and any flag clears.
+            sealRefreshTimer -= dt;
+            if (sealRefreshTimer <= 0f)
+            {
+                sealRefreshTimer = 1f;
+                MaintainSeal();
             }
         }
 
@@ -320,12 +346,66 @@ namespace ONIAnywhereDoor
                 Grid.DupeImpassable[cell] = !allowDuplicants;
                 Grid.CritterImpassable[cell] = !allowCritters;
 
-                // Do not exchange heat through the door cells (0f = insulated).
-                SimMessages.SetInsulation(cell, 0f);
+                SealCell(cell);
 
                 if (Pathfinding.Instance != null)
                 {
                     Pathfinding.Instance.AddDirtyNavGridCell(cell);
+                }
+            }
+
+            sealRefreshTimer = 1f;
+        }
+
+        /// <summary>
+        /// Make a cell absolutely impermeable to gas, liquid, and solid matter,
+        /// and stop heat conduction across it, without making the cell solid in
+        /// the Nav layer (teleportation and walking depend on the Nav layer only).
+        /// </summary>
+        private static void SealCell(int cell)
+        {
+            // GasImpermeable/LiquidImpermeable are checked directly by the sim
+            // when it considers moving a gas/liquid packet into this cell.
+            // SolidImpermeable does the same for falling solids.
+            SimMessages.SetCellProperties(cell, SealedCellProperties);
+
+            // The sim's conduction formula multiplies both neighbours' squared
+            // insulation bytes, so 0 makes the transfer exactly zero. This is
+            // separate from the element's own thermal conductivity.
+            SimMessages.SetInsulation(cell, SealedInsulation);
+        }
+
+        /// <summary>
+        /// Re-apply the seal only when the sim-side state drifted. Element
+        /// replacement (including loading a save) resets insulation to the
+        /// default 1f, and other systems can clear cell flags.
+        /// </summary>
+        private void MaintainSeal()
+        {
+            EnsurePlacementCells();
+            if (placementCells == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < placementCells.Length; i++)
+            {
+                int cell = placementCells[i];
+                if (!Grid.IsValidCell(cell))
+                {
+                    continue;
+                }
+
+                bool flagsMissing = (Grid.Properties[cell] & SealedCellProperties) != SealedCellProperties;
+                if (flagsMissing)
+                {
+                    // The properties indexer exposes the sim's byte directly.
+                    SimMessages.SetCellProperties(cell, SealedCellProperties);
+                }
+
+                if (Grid.Insulation[cell] != 0)
+                {
+                    SimMessages.SetInsulation(cell, SealedInsulation);
                 }
             }
         }
@@ -353,7 +433,8 @@ namespace ONIAnywhereDoor
 
                 Grid.DupeImpassable[cell] = false;
                 Grid.CritterImpassable[cell] = false;
-                SimMessages.SetInsulation(cell, 1f);
+                SimMessages.ClearCellProperties(cell, SealedCellProperties);
+                SimMessages.SetInsulation(cell, DefaultInsulation);
 
                 // SimCellOccupier clears RenderedByWorld; restore it on removal.
                 // Substance.renderedByWorld is not visible to mod assemblies,

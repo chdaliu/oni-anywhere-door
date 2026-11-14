@@ -23,8 +23,12 @@ namespace ONIAnywhereDoor
                 ANIM,
                 30,
                 30f,
-                new float[] { 200f },
-                new string[] { "BuildableRaw" },
+                new float[] { 200f, 200f },
+                new string[]
+                {
+                    MATERIALS.BUILDABLERAW,
+                    MATERIALS.METAL + "&" + MATERIALS.REFINED_METAL
+                },
                 1600f,
                 BuildLocationRule.OnFloor,
                 TUNING.BUILDINGS.DECOR.NONE,

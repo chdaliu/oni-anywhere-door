@@ -1,12 +1,14 @@
 namespace ONIAnywhereDoor
 {
     /// <summary>
-    /// Building and UI text. Initialize() selects Chinese or English after the
-    /// game's localization system is ready, so no external translation files
-    /// are required.
+    /// Building and UI text. Initialize() selects Chinese or English from the
+    /// language chosen in the game, so no external translation files are
+    /// required. It runs when the mod loads, before the Mods screen is shown.
     /// </summary>
     public static class STRINGS
     {
+        private static bool initialized;
+
         public static class BUILDINGS
         {
             public static class PREFABS
@@ -19,6 +21,17 @@ namespace ONIAnywhereDoor
                     public static LocString FLAVOR;
                 }
             }
+        }
+
+        /// <summary>
+        /// Title and description shown in the Mods screen. These replace the
+        /// bilingual text from mod.yaml at runtime so the entry and its tooltip
+        /// follow the selected game language instead of showing both languages.
+        /// </summary>
+        public static class MOD_INFO
+        {
+            public static LocString TITLE;
+            public static LocString DESCRIPTION;
         }
 
         public static class UI
@@ -41,7 +54,31 @@ namespace ONIAnywhereDoor
         /// <summary>Pick and assign the strings for the current game language.</summary>
         public static void Initialize()
         {
+            if (initialized)
+            {
+                return;
+            }
+            initialized = true;
+
             bool zh = UseChinese();
+            MOD_INFO.TITLE = L(zh, "任意门", "Anywhere Door");
+            MOD_INFO.DESCRIPTION = L(zh,
+                "添加 1x2 的任意门。所有建成的任意门在同一世界中自动组成最近邻传送网络，" +
+                "复制人自动寻路时会自动选择最近的入口使用网络，传送瞬间完成，" +
+                "没有动画、等待或排队；不需要选择目的地。任意门阻挡气体、液体和固体物质，" +
+                "只有复制人与小动物可以通过；可在建筑详情面板下方的功能区分别允许或禁止" +
+                "复制人与小动物通过（小动物默认禁止）。需要研究“除污”，" +
+                "并使用矿物原料与金属矿石或精炼金属建造；不可损毁，不交换热量。",
+                "Adds a 1x2 Anywhere Door. Completed doors in the same world automatically " +
+                "form a nearest-neighbour teleport network that duplicant pathfinding uses " +
+                "automatically, picking the closest entrance; travel is instant with no " +
+                "animation, waiting, or queue, and no destination needs to be chosen. " +
+                "Doors block gas, liquids, and solids; only duplicants and critters may pass, " +
+                "and their passage can be allowed or blocked independently from the action " +
+                "area below the building details panel (critters are blocked by default). " +
+                "Unlocked by Decontamination research and built from raw mineral plus " +
+                "metal ore or refined metal; indestructible, with no heat exchange.");
+
             BUILDINGS.PREFABS.ONIANYWHEREDOOR.NAME = L(zh, "任意门", "Anywhere Door");
             BUILDINGS.PREFABS.ONIANYWHEREDOOR.DESC = L(zh,
                 "一扇由矿石雕成的门，门内是一片缓慢旋转的星海。\n\n" +

@@ -20,8 +20,11 @@ ASSETS = ROOT / "anim" / "assets" / "oni_anywhere_door"
 NAME = "oni_anywhere_door"
 UI_HASH = 7675188  # Hash.SDBMLower("ui")
 DOOR_HASH = 1673617230  # Hash.SDBMLower("door")
-UI_ART_SCALE = 0.72
-BOUNDS = (0.0, -100.0, 200.0, 400.0)
+# Bounds are (center_x, center_y, width, height) in 200-unit cells. The y axis
+# is flipped when rendering, so a 1x2 building anchored at the bottom-centre of
+# its lower cell needs its centre one cell below the anchor: y = -200.
+BOUNDS = (0.0, -200.0, 200.0, 400.0)
+UI_BOUNDS = (0.0, 0.0, 200.0, 200.0)
 
 ANIMS = (
     "idle",
@@ -894,26 +897,36 @@ def kstring(s: str) -> bytes:
     return struct.pack("<i", len(b)) + b
 
 
-def _ui_art(image: Image.Image) -> Image.Image:
-    """Return a padded copy used only for UI/build-menu icons."""
-    w, h = image.size
-    scaled = image.resize((max(1, int(w * UI_ART_SCALE)),
-                           max(1, int(h * UI_ART_SCALE))), Image.LANCZOS)
-    out = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    out.paste(scaled, ((w - scaled.width) // 2, (h - scaled.height) // 2), scaled)
+def _ui_art(image: Image.Image, size: int = 256) -> Image.Image:
+    """Return a square, centred copy used only for UI/build-menu icons.
+
+    The world art is 1x2, so the icon keeps the whole door and pads it inside a
+    square. That matches the square bounds used by the ``ui`` symbol and keeps
+    the icon centred in the build menu instead of offset to one side.
+    """
+    out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    bbox = image.getbbox()
+    crop = image.crop(bbox) if bbox else image.copy()
+    crop.thumbnail((size - 8, size - 8), Image.LANCZOS)
+    out.paste(crop, ((size - crop.width) // 2, (size - crop.height) // 2), crop)
     return out
 
 
 def write_kanim(image: Image.Image) -> None:
     ASSETS.mkdir(parents=True, exist_ok=True)
 
-    # One texture, two regions: the top half is the full-size in-world art;
-    # the bottom half is a padded copy used for the build-menu icon and portrait.
+    # One texture, two regions side by side: the left half is the full-size
+    # in-world art, the top-right square is the build-menu icon / portrait.
     ui_art = _ui_art(image)
-    atlas = Image.new("RGBA", (image.width, image.height * 2), (0, 0, 0, 0))
+    atlas = Image.new("RGBA", (image.width + ui_art.width,
+                               max(image.height, ui_art.height)), (0, 0, 0, 0))
     atlas.paste(image, (0, 0))
-    atlas.paste(ui_art, (0, image.height))
+    atlas.paste(ui_art, (image.width, 0))
     atlas.save(ASSETS / f"{NAME}_0.png")
+
+    world_uv = (0.0, 0.0, image.width / atlas.width, 1.0)
+    ui_uv = (image.width / atlas.width, 0.0, 1.0,
+             ui_art.height / atlas.height)
 
     build = bytearray()
     build += b"BILD"
@@ -921,9 +934,9 @@ def write_kanim(image: Image.Image) -> None:
     build += struct.pack("<i", 2)  # symbols
     build += struct.pack("<i", 0)
     build += kstring("oni_anywhere_door")
-    for symbol_hash, uv_y0, uv_y1 in (
-        (DOOR_HASH, 0.0, 0.5),  # full-size world art (top half)
-        (UI_HASH, 0.5, 1.0),    # padded UI art (bottom half)
+    for symbol_hash, bounds, uv in (
+        (DOOR_HASH, BOUNDS, world_uv),  # full-size world art
+        (UI_HASH, UI_BOUNDS, ui_uv),    # square build-menu icon
     ):
         build += struct.pack("<i", symbol_hash)
         build += struct.pack("<i", symbol_hash)
@@ -933,8 +946,8 @@ def write_kanim(image: Image.Image) -> None:
         build += struct.pack("<i", 0)  # sequence
         build += struct.pack("<i", 1)  # duration
         build += struct.pack("<i", 0)  # texture image
-        build += struct.pack("<4f", *BOUNDS)
-        build += struct.pack("<4f", 0.0, uv_y0, 1.0, uv_y1)
+        build += struct.pack("<4f", *bounds)
+        build += struct.pack("<4f", *uv)
     build += struct.pack("<i", 2)  # hash table entries
     build += struct.pack("<i", DOOR_HASH)
     build += kstring("door")
@@ -950,12 +963,14 @@ def write_kanim(image: Image.Image) -> None:
     anim += struct.pack("<i", len(ANIMS))
     for anim_name in ANIMS:
         # The build menu reads the "ui" symbol; in-world anims use the full art.
-        symbol_hash = UI_HASH if anim_name == "ui" else DOOR_HASH
+        is_ui = anim_name == "ui"
+        symbol_hash = UI_HASH if is_ui else DOOR_HASH
+        frame_bounds = UI_BOUNDS if is_ui else BOUNDS
         anim += kstring(anim_name)
         anim += struct.pack("<i", symbol_hash)
         anim += struct.pack("<f", 1.0)
         anim += struct.pack("<i", 1)
-        anim += struct.pack("<4f", *BOUNDS)
+        anim += struct.pack("<4f", *frame_bounds)
         anim += struct.pack("<i", 1)
         anim += struct.pack("<i", symbol_hash)
         anim += struct.pack("<i", 0)

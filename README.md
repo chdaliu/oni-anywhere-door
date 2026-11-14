@@ -16,14 +16,15 @@
   - 复制人通过：允许 / 禁止（默认允许）。
   - 小动物通过：允许 / 禁止（默认禁止，小动物只会物理穿过门所在位置，不会被传送）。
 - **阻挡物质**：气体、液体和固体物质不能通过；只有复制人与小动物可以穿过。
-- **矿石建造**：使用 `BuildableRaw`（原版矿石/矿物）材料，200 kg。
+- **矿石与金属建造**：同时需要 200 kg `BuildableRaw`（矿物原料）和 200 kg 金属矿石或精炼金属。
+- **研究解锁**：与机械气闸相同，需先研究“除污”（`DirectedAirStreams`）。
 - **不可损毁**：不会过热、损坏、淹没、掩埋；只能通过拆除指令移除。
 - **不交换热量**：不参与结构温度模拟，门所在格也不参与热交换。
 - **中英文界面**：根据游戏语言自动显示中文或英文。
 
 ## 使用
 
-1. 在“基地 → 门”分类中建造任意门（1x2，放在地面上）。
+1. 研究“除污”后，在“基地 → 门”分类中建造任意门（1x2，放在地面上）。
 2. 建造至少两扇门，它们会自动组成最近邻网络。
 3. 正常给复制人安排任务，自动寻路会在合适时选择最近的任意门入口并使用网络。
 4. 用详情面板下方功能区的“复制人”“小动物”按钮调整这扇门的行为。
@@ -81,14 +82,15 @@ An **Oxygen Not Included** mod that adds a 1x2 **Anywhere Door**. Completed door
   - Duplicants: allowed / blocked (allowed by default).
   - Critters: allowed / blocked (blocked by default; critters only walk through and are never teleported).
 - **Blocks matter**: gas, liquids, and solids cannot pass; only duplicants and critters can.
-- **Mineral construction**: uses `BuildableRaw` (vanilla ores/minerals), 200 kg.
+- **Mineral and metal construction**: requires both 200 kg of `BuildableRaw` (raw mineral) and 200 kg of metal ore or refined metal.
+- **Research unlock**: same as the Mechanized Airlock; research **Decontamination** (`DirectedAirStreams`) first.
 - **Indestructible**: cannot overheat, break, flood, or become entombed; only deconstruction removes it.
 - **No heat exchange**: excluded from structure temperature simulation, including its cells.
 - **Chinese and English UI**: text follows the current game language.
 
 ## Usage
 
-1. Build the door under **Base → Doors** (1x2, on the floor).
+1. Research **Decontamination**, then build the door under **Base → Doors** (1x2, on the floor).
 2. Build at least two doors; they form a nearest-neighbour network automatically.
 3. Assign tasks normally. Pathfinding will use the closest door entrance when useful.
 4. Use the **Duplicants** and **Critters** buttons in the action area below the details panel to change passage.

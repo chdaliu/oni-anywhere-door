@@ -9,12 +9,16 @@ namespace ONIAnywhereDoor
     {
         protected AnywhereDoor door;
 
-        private static readonly EventSystem.IntraObjectHandler<AnywhereDoorMenuButton> OnRefreshUserMenuDelegate =
-            new EventSystem.IntraObjectHandler<AnywhereDoorMenuButton>(
-                delegate(AnywhereDoorMenuButton component, object data)
-                {
-                    component.OnRefreshUserMenu(data);
-                });
+        // Do not use IntraObjectHandler<AnywhereDoorMenuButton> here: it dispatches
+        // to *every* component of that type on the object. With the dupe and the
+        // critter button both subscribed, that added each button twice (the
+        // duplicated "复制人：允许" entries). This extended subscription carries the
+        // component instance itself, so each component is invoked exactly once.
+        private static readonly System.Action<object, object> OnRefreshUserMenuAction =
+            delegate (object handlerData, object data)
+            {
+                ((AnywhereDoorMenuButton)handlerData).OnRefreshUserMenu(data);
+            };
 
         protected abstract string IconName { get; }
 
@@ -29,7 +33,7 @@ namespace ONIAnywhereDoor
         protected override void OnPrefabInit()
         {
             base.OnPrefabInit();
-            Subscribe(493375141, OnRefreshUserMenuDelegate);
+            Subscribe(493375141, OnRefreshUserMenuAction, this);
         }
 
         protected override void OnSpawn()
