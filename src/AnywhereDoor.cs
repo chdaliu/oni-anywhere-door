@@ -345,12 +345,24 @@ namespace ONIAnywhereDoor
                 Grid.SetSolid(cell, false, CellEventLogger.Instance.SimCellOccupierForceSolid);
                 Game.Instance.SetDupePassableSolid(cell, passable: true, solid: false);
 
+                // RoomProber treats grid cells with the Door build flag as
+                // room boundaries even when they are not solid. Vanilla doors
+                // set this in Door.OnSpawn, so they split rooms while open and
+                // passable too. Without it, rooms on both sides merge.
+                bool becameRoomBoundary = !Grid.HasDoor[cell];
+                Grid.HasDoor[cell] = true;
+
                 // Physical passage is controlled by these two flags, so
                 // duplicants and critters can be allowed independently.
                 Grid.DupeImpassable[cell] = !allowDuplicants;
                 Grid.CritterImpassable[cell] = !allowCritters;
 
                 SealCell(cell);
+
+                if (becameRoomBoundary)
+                {
+                    NotifyRoomProber(cell);
+                }
 
                 if (Pathfinding.Instance != null)
                 {
@@ -430,6 +442,11 @@ namespace ONIAnywhereDoor
                     continue;
                 }
 
+                // Clear the room-boundary flag first: RoomProber ignores
+                // solid-change events on cells that are still marked as doors.
+                bool wasRoomBoundary = Grid.HasDoor[cell];
+                Grid.HasDoor[cell] = false;
+
                 Element element = Grid.Element[cell];
                 bool solid = element != null && element.IsSolid;
                 Grid.SetSolid(cell, solid, CellEventLogger.Instance.SimCellOccupierDestroy);
@@ -452,6 +469,25 @@ namespace ONIAnywhereDoor
                 {
                     Pathfinding.Instance.AddDirtyNavGridCell(cell);
                 }
+
+                if (wasRoomBoundary)
+                {
+                    NotifyRoomProber(cell);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Ask RoomProber to rebuild the cavities around a cell. The public
+        /// overload with ignoreDoors:false is required because RoomProber
+        /// normally ignores solid changes on door cells.
+        /// </summary>
+        private static void NotifyRoomProber(int cell)
+        {
+            RoomProber roomProber = Game.Instance != null ? Game.Instance.roomProber : null;
+            if (roomProber != null)
+            {
+                roomProber.SolidChangedEvent(cell, ignoreDoors: false);
             }
         }
 

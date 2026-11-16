@@ -16,6 +16,7 @@
   - 复制人通过：允许 / 禁止（默认允许）。
   - 小动物通过：允许 / 禁止（默认禁止，小动物只会物理穿过门所在位置，不会被传送）。
 - **阻挡物质**：气体、液体和固体物质不能通过；只有复制人与小动物可以穿过。
+- **房间隔离**：像普通门一样隔断房间判定，门两侧的房间不会合并。
 - **防田鼠钻透**：田鼠无法把任意门当作可钻掘的固体，不能从门所在格钻过去。
 - **矿石与金属建造**：同时需要 200 kg `BuildableRaw`（矿物原料）和 200 kg 金属矿石或精炼金属。
 - **研究解锁**：与手动气闸相同，需先研究“气压管理”（`PressureManagement`）。
@@ -84,6 +85,7 @@ An **Oxygen Not Included** mod that adds a 1x2 **Anywhere Door**. Completed door
   - Duplicants: allowed / blocked (allowed by default).
   - Critters: allowed / blocked (blocked by default; critters only walk through and are never teleported).
 - **Blocks matter**: gas, liquids, and solids cannot pass; only duplicants and critters can.
+- **Room isolation**: like a regular door, it splits rooms; room bonuses do not merge across it.
 - **Vole-proof**: Shove Voles cannot treat a door as diggable solid, so they cannot tunnel through it.
 - **Mineral and metal construction**: requires both 200 kg of `BuildableRaw` (raw mineral) and 200 kg of metal ore or refined metal.
 - **Research unlock**: same as the Manual Airlock; research **Pressure Management** (`PressureManagement`) first.
