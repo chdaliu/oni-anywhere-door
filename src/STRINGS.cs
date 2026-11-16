@@ -68,7 +68,7 @@ namespace ONIAnywhereDoor
                 "没有动画、等待或排队；不需要选择目的地。任意门阻挡气体、液体和固体物质，" +
                 "只有复制人与小动物可以通过；可在建筑详情面板下方的功能区分别允许或禁止" +
                 "复制人与小动物通过（小动物默认禁止）。田鼠无法钻透任意门。" +
-                "需要研究“除污”，并使用矿物原料与金属矿石或精炼金属建造；" +
+                "需要研究“气压管理”，并使用矿物原料与金属矿石或精炼金属建造；" +
                 "不可损毁，不交换热量。",
                 "Adds a 1x2 Anywhere Door. Completed doors in the same world automatically " +
                 "form a nearest-neighbour teleport network that duplicant pathfinding uses " +
@@ -78,7 +78,7 @@ namespace ONIAnywhereDoor
                 "and their passage can be allowed or blocked independently from the action " +
                 "area below the building details panel (critters are blocked by default). " +
                 "Shove Voles cannot burrow through the door. " +
-                "Unlocked by Decontamination research and built from raw mineral plus " +
+                "Unlocked by Pressure Management research and built from raw mineral plus " +
                 "metal ore or refined metal; indestructible, with no heat exchange.");
 
             BUILDINGS.PREFABS.ONIANYWHEREDOOR.NAME = L(zh, "任意门", "Anywhere Door");

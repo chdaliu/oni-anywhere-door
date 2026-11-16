@@ -43,10 +43,10 @@ namespace ONIAnywhereDoor
             STRINGS.Initialize();
             LocString.CreateLocStringKeys(typeof(STRINGS), null);
 
-            // Register the door in the Mechanized Airlock's research node before
+            // Register the door in the Manual Airlock's research node before
             // building defs are processed, so BuildingDef.PostProcess creates the
             // matching TechItem and the build menu gates it behind that research.
-            Tech tech = Db.Get().Techs.TryGetTechForTechItem("PressureDoor");
+            Tech tech = Db.Get().Techs.TryGetTechForTechItem("ManualPressureDoor");
             if (tech != null)
             {
                 tech.AddUnlockedItemIDs(AnywhereDoorConfig.ID);
