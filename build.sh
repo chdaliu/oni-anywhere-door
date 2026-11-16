@@ -3,8 +3,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-export DOTNET_ROOT="${DOTNET_ROOT:-$HOME/.dotnet}"
-export PATH="$DOTNET_ROOT:$PATH"
+# Use the .NET SDK from PATH by default. Set DOTNET to another executable to override.
+DOTNET="${DOTNET:-dotnet}"
 
 # Generate the building animation (Pillow only). If Pillow is missing:
 #   python3 -m pip install pillow
@@ -15,7 +15,7 @@ else
     echo "Skipping animation generation: python3 or Pillow not found."
 fi
 
-dotnet build -c Release "$@"
+"$DOTNET" build -c Release "$@"
 
 echo
 echo "Deployed to:"
