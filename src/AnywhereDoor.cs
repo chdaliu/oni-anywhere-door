@@ -21,6 +21,10 @@ namespace ONIAnywhereDoor
     /// are also re-asserted periodically: reloading or replacing the cell element
     /// can reset the sim-side insulation byte, which would silently reopen the
     /// cells to heat conduction.
+    ///
+    /// VoleProofPatch also marks the cells as undiggable in the DiggerNavGrid,
+    /// so Shove Voles cannot tunnel through a door even if SimCellOccupier
+    /// transiently marks its cells solid while loading.
     /// </summary>
     [SerializationConfig(MemberSerialization.OptIn)]
     public sealed class AnywhereDoor : KMonoBehaviour, ISim200ms

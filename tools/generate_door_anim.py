@@ -25,6 +25,10 @@ DOOR_HASH = 1673617230  # Hash.SDBMLower("door")
 # its lower cell needs its centre one cell below the anchor: y = -200.
 BOUNDS = (0.0, -200.0, 200.0, 400.0)
 UI_BOUNDS = (0.0, 0.0, 200.0, 200.0)
+# Build-menu icon size inside the 256x256 UI tile. The world art is deliberately
+# squashed only for this icon so a 1x2 door does not look like a thin strip in
+# the square build menu.
+UI_ART_W, UI_ART_H = 200, 220
 
 ANIMS = (
     "idle",
@@ -898,17 +902,20 @@ def kstring(s: str) -> bytes:
 
 
 def _ui_art(image: Image.Image, size: int = 256) -> Image.Image:
-    """Return a square, centred copy used only for UI/build-menu icons.
+    """Return a square copy used only for UI/build-menu icons.
 
-    The world art is 1x2, so the icon keeps the whole door and pads it inside a
-    square. That matches the square bounds used by the ``ui`` symbol and keeps
-    the icon centred in the build menu instead of offset to one side.
+    The world art is 1x2, so fitting it unchanged into the square build-menu
+    tile makes the icon read as a thin sliver. Compress only this copy
+    vertically (and widen it slightly) so it fills the tile; the in-world art
+    keeps its real proportions.
     """
     out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     bbox = image.getbbox()
     crop = image.crop(bbox) if bbox else image.copy()
-    crop.thumbnail((size - 8, size - 8), Image.LANCZOS)
-    out.paste(crop, ((size - crop.width) // 2, (size - crop.height) // 2), crop)
+    target_w = min(UI_ART_W, size - 8)
+    target_h = min(UI_ART_H, size - 8)
+    crop = crop.resize((target_w, target_h), Image.LANCZOS)
+    out.paste(crop, ((size - target_w) // 2, (size - target_h) // 2), crop)
     return out
 
 

@@ -11,7 +11,7 @@
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AssemblyTitle>ONI-AnywhereDoor</AssemblyTitle>
     <Product>Anywhere Door / 任意门</Product>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <DebugType>none</DebugType>
     <NoWarn>CS0436;CS0618</NoWarn>
 

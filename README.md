@@ -16,6 +16,7 @@
   - 复制人通过：允许 / 禁止（默认允许）。
   - 小动物通过：允许 / 禁止（默认禁止，小动物只会物理穿过门所在位置，不会被传送）。
 - **阻挡物质**：气体、液体和固体物质不能通过；只有复制人与小动物可以穿过。
+- **防田鼠钻透**：田鼠无法把任意门当作可钻掘的固体，不能从门所在格钻过去。
 - **矿石与金属建造**：同时需要 200 kg `BuildableRaw`（矿物原料）和 200 kg 金属矿石或精炼金属。
 - **研究解锁**：与机械气闸相同，需先研究“除污”（`DirectedAirStreams`）。
 - **不可损毁**：不会过热、损坏、淹没、掩埋；只能通过拆除指令移除。
@@ -54,6 +55,7 @@ src/
   AnywhereDoorMod.cs        Mod 入口与建造菜单注册
   STRINGS.cs                中英文字符串
   InstantTeleportPatch.cs   瞬间传送补丁
+  VoleProofPatch.cs         田鼠防钻透补丁
 anim/assets/oni_anywhere_door/
   *_0.png / *_build.bytes / *_anim.bytes
 tools/generate_door_anim.py 动画与图标生成脚本
@@ -82,6 +84,7 @@ An **Oxygen Not Included** mod that adds a 1x2 **Anywhere Door**. Completed door
   - Duplicants: allowed / blocked (allowed by default).
   - Critters: allowed / blocked (blocked by default; critters only walk through and are never teleported).
 - **Blocks matter**: gas, liquids, and solids cannot pass; only duplicants and critters can.
+- **Vole-proof**: Shove Voles cannot treat a door as diggable solid, so they cannot tunnel through it.
 - **Mineral and metal construction**: requires both 200 kg of `BuildableRaw` (raw mineral) and 200 kg of metal ore or refined metal.
 - **Research unlock**: same as the Mechanized Airlock; research **Decontamination** (`DirectedAirStreams`) first.
 - **Indestructible**: cannot overheat, break, flood, or become entombed; only deconstruction removes it.
@@ -120,6 +123,7 @@ src/
   AnywhereDoorMod.cs        Mod entry and build-menu registration
   STRINGS.cs                Chinese/English strings
   InstantTeleportPatch.cs   Instant-teleport patch
+  VoleProofPatch.cs         Shove Vole digging patch
 anim/assets/oni_anywhere_door/
   *_0.png / *_build.bytes / *_anim.bytes
 tools/generate_door_anim.py Animation and icon generator

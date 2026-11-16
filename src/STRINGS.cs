@@ -67,8 +67,9 @@ namespace ONIAnywhereDoor
                 "复制人自动寻路时会自动选择最近的入口使用网络，传送瞬间完成，" +
                 "没有动画、等待或排队；不需要选择目的地。任意门阻挡气体、液体和固体物质，" +
                 "只有复制人与小动物可以通过；可在建筑详情面板下方的功能区分别允许或禁止" +
-                "复制人与小动物通过（小动物默认禁止）。需要研究“除污”，" +
-                "并使用矿物原料与金属矿石或精炼金属建造；不可损毁，不交换热量。",
+                "复制人与小动物通过（小动物默认禁止）。田鼠无法钻透任意门。" +
+                "需要研究“除污”，并使用矿物原料与金属矿石或精炼金属建造；" +
+                "不可损毁，不交换热量。",
                 "Adds a 1x2 Anywhere Door. Completed doors in the same world automatically " +
                 "form a nearest-neighbour teleport network that duplicant pathfinding uses " +
                 "automatically, picking the closest entrance; travel is instant with no " +
@@ -76,6 +77,7 @@ namespace ONIAnywhereDoor
                 "Doors block gas, liquids, and solids; only duplicants and critters may pass, " +
                 "and their passage can be allowed or blocked independently from the action " +
                 "area below the building details panel (critters are blocked by default). " +
+                "Shove Voles cannot burrow through the door. " +
                 "Unlocked by Decontamination research and built from raw mineral plus " +
                 "metal ore or refined metal; indestructible, with no heat exchange.");
 
@@ -87,7 +89,7 @@ namespace ONIAnywhereDoor
                 "传送瞬间完成，没有动画、等待或排队；不需要手动选择目的地。\n\n" +
                 "任意门会阻挡气体、液体和固体物质通过，只有复制人与小动物可以穿过。" +
                 "它不会与周围交换热量，不会被高温熔化、不会损坏，也无法被淹没或掩埋；" +
-                "只能通过拆除指令移除。",
+                "田鼠无法钻透它，只能通过拆除指令移除。",
                 "A door carved from mineral, holding a slowly turning sea of stars.\n\n" +
                 "All completed Anywhere Doors in the same world automatically form a " +
                 "nearest-neighbour teleport network. Duplicant pathfinding treats the " +
@@ -95,16 +97,17 @@ namespace ONIAnywhereDoor
                 "with no animation, waiting, or queue, and no destination needs to be chosen.\n\n" +
                 "Anywhere Doors block gas, liquids, and solids; only duplicants and critters " +
                 "may pass. They do not exchange heat, cannot melt, break, flood, or become " +
-                "entombed, and can only be removed with the deconstruct command.");
+                "entombed, cannot be burrowed through by Shove Voles, and can only be " +
+                "removed with the deconstruct command.");
             BUILDINGS.PREFABS.ONIANYWHEREDOOR.EFFECT = L(zh,
                 "同世界最近邻网络\n自动寻路使用\n瞬间传送/无排队\n" +
                 "阻挡气体/液体/固体物质\n只有生物可以通过\n" +
                 "可允许或禁止复制人通过\n可允许或禁止小动物通过\n" +
-                "矿石建造\n不可损毁\n无热量交换",
+                "田鼠无法钻透\n矿石建造\n不可损毁\n无热量交换",
                 "Nearest-neighbour network per world\nUsed by pathfinding\n" +
                 "Instant travel / no queue\nBlocks gas / liquid / solid matter\n" +
                 "Only creatures may pass\nCan allow or block duplicant passage\n" +
-                "Can allow or block critter passage\nBuilt from mineral\n" +
+                "Can allow or block critter passage\nShove Vole-proof\nBuilt from mineral\n" +
                 "Indestructible\nNo heat exchange");
             BUILDINGS.PREFABS.ONIANYWHEREDOOR.FLAVOR = L(zh,
                 "\"门后不是另一个房间，而是另一扇门。\"",
